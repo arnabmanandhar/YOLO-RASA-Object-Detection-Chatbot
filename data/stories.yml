@@ -1,0 +1,13 @@
+version: "2.0"
+stories:
+- story: greet and ask about objects
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - action: action_process_image
+  - action: utter_ask_about_object
+
+- story: ask about objects
+  steps:
+  - intent: ask_about_object
+  - action: utter_ask_about_object

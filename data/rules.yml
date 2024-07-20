@@ -1,0 +1,8 @@
+version: "2.0"
+rules:
+- rule: Greet and detect objects
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - action: action_process_image
+  - action: utter_ask_about_object

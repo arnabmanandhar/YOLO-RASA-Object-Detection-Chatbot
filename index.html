@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+        #chat-container {
+            width: 60%;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            height: 500px;
+            overflow-y: auto;
+        }
+        #chat-header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        #chat-box {
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+        .user-message, .bot-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 80%;
+        }
+        .user-message {
+            align-self: flex-end;
+            background-color: #dcf8c6;
+        }
+        .bot-message {
+            align-self: flex-start;
+            background-color: #f1f0f0;
+        }
+        .bot-message img {
+            max-width: 100%;
+            height: auto;
+        }
+        .chat-input {
+            display: flex;
+            margin: 10px 0;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .chat-input button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+        .chat-input button:hover {
+            background-color: #0056b3;
+        }
+        .image-container {
+            margin-top: 10px;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-header">
+            Chatbot Interface
+        </div>
+        <div id="chat-box">
+            <!-- Chat messages will be appended here -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function displayMessage(message, isBot) {
+            const chatBox = document.getElementById('chat-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isBot ? 'bot-message' : 'user-message';
+            messageDiv.innerHTML = message;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function displayMessageWithImages(originalImageBase64, detectedImageBase64) {
+            const chatBox = document.getElementById('chat-box');
+
+            // Display original image
+            const originalImageDiv = document.createElement('div');
+            originalImageDiv.className = 'image-container';
+            originalImageDiv.innerHTML = `
+                <strong>Original Image:</strong>
+                <img src="data:image/jpeg;base64,${originalImageBase64}" alt="Original Image">
+            `;
+            chatBox.appendChild(originalImageDiv);
+
+            // Display detected image
+            const detectedImageDiv = document.createElement('div');
+            detectedImageDiv.className = 'image-container';
+            detectedImageDiv.innerHTML = `
+                <strong>Detected Image:</strong>
+                <img src="data:image/jpeg;base64,${detectedImageBase64}" alt="Detected Image">
+            `;
+            chatBox.appendChild(detectedImageDiv);
+            
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('user-input').value;
+            if (userInput.trim() === '') return;
+
+            // Display user message
+            displayMessage(userInput, false);
+
+            // Send user message to Rasa
+            fetch('http://localhost:5005/webhooks/rest/webhook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(message => {
+                    if (message.text) {
+                        // Display bot text message
+                        displayMessage(message.text, true);
+                    }
+                    if (message.image) {
+                        // Display bot image message
+                        const originalImageBase64 = message.image.original || '';
+                        const detectedImageBase64 = message.image.detected || '';
+                        displayMessageWithImages(originalImageBase64, detectedImageBase64);
+                    }
+                });
+            })
+            .catch(error => console.error('Error:', error));
+
+            // Clear user input
+            document.getElementById('user-input').value = '';
+        }
+    </script>
+</body>
+</html>

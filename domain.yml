@@ -1,0 +1,37 @@
+version: "2.0"
+
+intents:
+  - greet
+  - ask_about_object
+
+entities:
+  - object
+
+slots:
+  object:
+    type: text
+  detected_objects:
+    type: text
+
+actions:
+  - action_process_image
+
+responses:
+  utter_greet:
+    - text: "Hello! I just received your captured image!"
+
+  utter_ask_about_object:
+    - text: "I detected some objects in the image. Please feel free to ask any questions regarding them!"
+
+  utter_no_image_found:
+    - text: "No images found in the directory."
+
+  utter_no_objects_detected:
+    - text: "No objects detected in the image."
+
+  utter_detected_objects:
+    - text: "This is the image with the detected objects: {objects}. The image has been saved. Please ask any queries about the detected objects."
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
